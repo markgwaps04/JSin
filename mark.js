@@ -1,7 +1,10 @@
 
 import {
     renderer
-} from "../scripts/template_renderer.js"
+} from "../scripts/template_renderer.js";
+
+import {Validation,ofObject} from "../script.js";
+
 
 /**
  * @author Mark Anthony Libres
@@ -15,6 +18,8 @@ export class Event
     _target_container = null;
 
     #elements = null;
+
+    trigger_element = null;
 
     constructor(...elements)
     {
@@ -76,6 +81,7 @@ export class Event
     #action = function (thisFunc,trigger) {
 
         const target = thisFunc.currentTarget;
+        this.trigger_element = target;
 
         let id = target.getAttribute("id");
         if(!id) return warning("action type has no identifier");
@@ -91,7 +97,8 @@ export class Event
 }
 
 
-export class OfHandlebars {
+export class OfHandlebars
+{
 
     #src = "/support/js/plugins/handlebars.js";
 
@@ -178,6 +185,118 @@ export class Template extends OfHandlebars
         return new Promise(function (resolve, reject) {
 
             const handlebar = new OfHandlebars(resolve)
+
+        });
+
+
+    }
+
+}
+
+
+
+class AJAX_STATE {
+
+    static INVALID_REQUEST = 0;
+    static CONNECTION_ESTABLISHED = 1;
+    static REQUEST_RECEIVED = 2;
+    static PROCESSING_REQUEST = 3;
+    static REQUEST_FINISHED = 4;
+
+}
+
+
+class AJAX_REQUEST_STATUS {
+
+    static OK = 200;
+
+
+}
+
+
+export class Ajax
+{
+
+    #url = null;
+    #parameters = NOTHING;
+
+    async = true;
+
+    constructor(url,object = new Object())
+    {
+
+        if(Validation.typeOf(object) !== "object")
+
+            throw new Error("Parameter 2 not valid object type");
+
+        if(Validation.typeOf(url) !== "string")
+
+            throw new Error("Parameter 1 not valid string type");
+
+        this.#url = url;
+        this.#parameters = ofObject.serialize(object);
+
+    }
+
+    #readyState = function(xhttp,callback) {
+
+        xhttp = xhttp.target;
+
+        const request_state =  xhttp.readyState ==  AJAX_STATE.REQUEST_FINISHED;
+        const request_status = xhttp.status == AJAX_REQUEST_STATUS.OK;
+
+        const response = String(xhttp.responseText)._parseType();
+
+        if(request_state && request_status)
+
+            callback(response,xhttp);
+
+
+
+    }
+
+
+    #send = function(callback = new Function) {
+
+
+        if(Validation.typeOf(callback) !== "function")
+
+            throw new Error("Parameter 1 not valid function");
+
+
+        const xhttp  = Ajax.XMLHttpRequest;
+
+        xhttp.onreadystatechange = Ofxhttp => this.#readyState(Ofxhttp,callback);
+
+        return xhttp;
+
+
+    }
+
+
+    static get XMLHttpRequest()
+    {
+
+        if (window.XMLHttpRequest)
+            // code for modern browsers
+            return new XMLHttpRequest();
+
+        // code for old IE browsers
+        return new ActiveXObject("Microsoft.XMLHTTP");
+
+    }
+
+
+    get post()
+    {
+
+        const root = this;
+
+        return new Promise(function (resolve) {
+
+            const xhttp = root.#send(resolve)
+            xhttp.open("POST",root.#url, root.async);
+            xhttp.send(root.#parameters);
 
         });
 

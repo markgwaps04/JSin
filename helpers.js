@@ -1051,6 +1051,20 @@ export const _helpers = {
 
     },
 
+    serialize: function(object) {
+
+        if (this.checkType(object) !== "object")
+
+            throw new Error("Parameter 1 not valid object type");
+
+        const keys = Object.keys(object);
+
+        return keys
+            .map(item => item + "=" + object[item])
+            .join("&");
+
+    },
+
 
     main: function () {
 

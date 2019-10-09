@@ -80,3 +80,13 @@ export class approved_pds extends pds_state
 
     }
 }
+
+
+export class remove_pds extends pds_state
+{
+    constructor(id) {
+
+        super(id,"remove");
+
+    }
+}

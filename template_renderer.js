@@ -1,5 +1,4 @@
 
-console.log("Hello JAVA");
 
 export class helper {
 
